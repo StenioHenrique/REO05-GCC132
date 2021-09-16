@@ -11,8 +11,8 @@
 Foi criado uma página web simples, contendo apenas um campo no qual o usuário irá inserir o seu nome e curso, **não é possível enviar salvar as informações inseridas**, pois essa é uma página apenas para demonstração, já que o foco principal dessa atividade é a criação de um repositório no [GITHUB](github.com). 
 
 ### Tarefas a serem cumpridas: 
-[X] Criar um README.MD com título, texto formatado, trecho de código, listagem de tópicos, *hyperlinks* e imagens; 
-[ ] O repositório deve conter, pelo menos 3 *commits*.  
+- [X] Criar um README.MD com título, texto formatado, trecho de código, listagem de tópicos, *hyperlinks* e imagens; 
+- [ ] O repositório deve conter, pelo menos 3 *commits*.  
 
 ### Tecnologias utilizada 
 
