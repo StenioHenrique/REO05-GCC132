@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.2/dist/sweetalert2.min.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+</head>
+
+<body>
+	<div id="app">
+		<v-app>
+			<v-main>
+				<v-card class="mx-auto mt-5" max-width="1200">
+					<div class="row bg-dark">
+						<div class="col-lg-12">
+							<h1 class="text-center text-light display-2 pt-2" style="font-size:18px">Cadastro de Alunos</h1>
+                            <p class="text-center">Essa é uma página de exemplo criada para a disciplina de GCC132 - Modelagem e Implementação de Software,
+                                por tanto, não é possível enviar dados no formulário, já que não foi implementado um back-end, somente um front. 
+                            </p>      
+						</div>
+					</div>
+
+					<v-btn rounded color="green accent-2" @click="novoForm()">Cadastrar aluno</v-btn>
+					<!--Listagem de alunos cadastrados-->
+					<v-simple-table class="mt-5">
+						<template v-slot:default>
+							<thead>
+								<tr class="light-blue darken-2">
+									<th class="white--text">NOME</th>
+									<th class="white--text">MATRÍCULA</th>
+									<th class="white--text">CURSO</th>
+									<th class="white--text">SEMESTRE</th>
+									<th class="white--text">DISCIPLINA</th>
+								
+									<th class="white--text">AÇÕES</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>Stenio Silva</td>
+									<td>201810609</td>
+									<td>Sistemas de Informação</td>
+									<td>1° Semestre de 2021</td>
+									<td>GCC132</td>								
+									<td>
+										<v-btn class="teal accent-4" dark
+											@click="formEditar(aluno.id, aluno.nome, aluno.matricula, aluno.curso, aluno.semestre, aluno.disciplina)">
+											Editar</v-btn>
+										<v-btn class="error" dark @click="apagar(aluno.id)">Apagar</v-btn>
+									</td>
+								</tr>
+							</tbody>
+						</template>
+					</v-simple-table>
+				</v-card> 
+				<!-- Formulário de cadastro/edição -->
+				<v-dialog v-model="dialog" max-width="500">
+					<v-card>
+						<v-card-title class="blue-grey darken-1 white--text">Inserir Novo Aluno</v-card-title>
+						<v-form>
+							<v-card-text>
+								<v-container>
+									<v-row>
+										<input v-model="aluno.id" hidden></input>
+										<v-col cols="12" md="12">
+											<v-text-field v-model="aluno.nome" label="Nome" required>{{aluno.nome}}</v-text-field>
+										</v-col>
+										<v-col cols="12" md="12">
+											<v-text-field v-model="aluno.matricula" label="matricula" type="text" required>{{aluno.matricula}}</v-text-field>
+										</v-col>
+										<v-col cols="12" md="4">
+											<v-text-field v-model="aluno.curso" label="curso" type="number" required>{{aluno.curso}}</v-text-field>
+										</v-col>
+										<v-col cols="12" md="8">
+											<v-text-field v-model="aluno.semestre" label="semestre" required>{{aluno.semestre}}</v-text-field>
+										</v-col>
+										<v-col cols="12" md="12">
+											<v-text-field v-model="aluno.disciplina" label="disciplina" required>{{aluno.disciplina}}</v-text-field>
+										</v-col>
+									</v-row>
+								</v-container>
+							</v-card-text>
+							<v-card-actions>
+								<v-spacer></v-spacer>
+								<v-btn @click="dialog=false">Cancelar</v-btn>
+								<v-btn @click="salvar()" type="button" color="indigo" dark>Salvar</v-btn>
+							</v-card-actions>
+						</v-form>
+					</v-card>
+				</v-dialog>
+			</v-main>
+		</v-app>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js"
+		integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg=="
+		crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.0.2/dist/sweetalert2.all.min.js"></script>
+
+	<script>
+		new Vue({
+			el: '#app',
+			vuetify: new Vuetify(),
+			// Componente de retorno de dados 
+			data() {
+				return {
+					alunos: [],
+					dialog: false,
+					operacao: '',
+
+					aluno: {
+						id: '',
+						nome: '',
+						matricula: '',
+						curso: '',
+						semestre: '',
+						disciplina: '', 
+					}
+				}
+			},
+
+			// Life cycle hook, que irá chamar a função "mostrar" assim que o componente for criado
+			created() {
+				this.mostrar(); 
+			},
+
+			methods: {
+				// Função mostrar, responsável por listar todos os alunos cadastrados
+				mostrar: function () {
+					let opcao = 1; 
+					var formData = new FormData(); 
+					formData.append("opcao", opcao); 
+					// Chamada do Axios, ativando o método post para troca de dados 
+					axios.post(url, formData, 
+						{ 
+							headers: { 
+								'Content-Type' : ('multipart/form-data charset=utf-8; boundary=' + Math.random().toString().substr(2))
+							}
+						})
+						.then(response => {
+							this.alunos = response.data;
+						});
+				},
+	
+
+				// Função responsável por montar o objeto que será enviado ao backend quando for cadastrado um novo aluno 
+				cadastrar: function () {
+					let opcao = 2; 
+					var formData = new FormData();
+					formData.append("nome", this.aluno.nome); 
+					formData.append("matricula", this.aluno.matricula); 
+					formData.append("curso", this.aluno.curso); 
+					formData.append("semestre", this.aluno.semestre); 
+					formData.append("disciplina", this.aluno.disciplina);
+					formData.append("opcao", opcao); 
+
+					axios.post(url,
+						formData, 	
+						{
+							headers: { 
+								'Content-Type' : ('multipart/form-data charset=utf-8; boundary=' + Math.random().toString().substr(2))
+							}
+						})
+						.then(response => {
+							this.mostrar();
+						});
+
+					this.aluno.nome = "";
+					this.aluno.matricula = "";
+					this.aluno.curso = "";
+					this.aluno.semestre = "";
+					this.aluno.disciplina = "";
+
+				},
+
+				// Função que receberá os dados editados e irá montar o objeto para que seja salvo no banco as edições.
+				editar: function (id, nome, matricula, curso, semestre, disciplina) {
+					let opcao = 3; 
+					var formData = new FormData();
+					formData.append("id", this.aluno.id);
+					formData.append("nome", this.aluno.nome); 
+					formData.append("matricula", this.aluno.matricula); 
+					formData.append("curso",this.aluno.curso); 
+					formData.append("semestre", this.aluno.semestre); 
+					formData.append("disciplina", this.aluno.disciplina); 
+					formData.append("opcao", opcao);
+					
+					axios.post(url, 
+						formData, 
+						{
+							headers: { 
+								'Content-Type' : ('multipart/form-data charset=utf-8; boundary=' + Math.random().toString().substr(2))
+							}	
+						})
+						.then(response => {
+							this.mostrar();
+						});
+				},
+
+				// Função que deleta o aluno cadastrado
+				apagar: function (id) {
+					let opcao = 4; 
+					var formData = new FormData();
+					formData.append("id", id);
+					formData.append("opcao", opcao); 
+
+					Swal.fire({
+						title: 'Confirma a exclusão do aluno? ',
+						confirmButtonText: `Confirmar`,
+						showCancelButton: true,
+					}).then((result) => {
+						if (result.isConfirmed) {
+							axios.post(url, formData)
+								.then(response => {
+									this.mostrar();
+								});
+							Swal.fire('Apagado!', '', 'success')
+						} else if (result.isDenied) {
+						}
+					});
+				},
+
+				// Função responsável por verificar qual operação está sendo realizada no form e chamar a função editar ou cadastrar de acordo com a op realizada
+				salvar: function () {
+					if (this.operacao == 'cadastrar') {
+						this.cadastrar();
+					}
+					if (this.operacao == 'editar') {
+						this.editar();
+					}
+					this.dialog = false;
+				},
+
+				// Abre a modal com um formulário em branco
+				novoForm: function () {
+					this.dialog = true;
+					this.operacao = 'cadastrar';
+					this.aluno.nome = '';
+					this.aluno.matricula = '';
+					this.aluno.curso = '';
+					this.aluno.semestre = '';
+					this.aluno.disciplina = ''; 
+
+				},
+
+				// Abre a modal com dados pré-preenchidos para edição 
+				formEditar: function (id, nome, matricula, curso, semestre, disciplina, cidade, estado, imagem) {
+					this.aluno.id = id;
+					this.dialog = true;
+					this.aluno.nome = nome;
+					this.aluno.curso = curso;
+					this.aluno.matricula = matricula;
+					this.aluno.semestre = semestre;
+					this.aluno.disciplina = disciplina; 
+					this.dialog = true;
+					this.operacao = 'editar';
+				},
+			}
+		});
+	</script>
+</body>
+
+</html>
